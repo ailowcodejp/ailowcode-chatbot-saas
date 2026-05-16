@@ -1,0 +1,1 @@
+-- Seed data is intentionally empty during initial setup.
