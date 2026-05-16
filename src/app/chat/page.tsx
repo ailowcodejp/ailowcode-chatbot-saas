@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { LogoutButton } from "@/features/auth/components/logout-button";
 import { ChatForm } from "@/features/chat/components/chat-form";
 
 const chatHistories = [
@@ -55,16 +56,6 @@ function SettingsIcon({ className }: Readonly<{ className?: string }>) {
 		<Icon className={className}>
 			<circle cx="12" cy="12" r="3" />
 			<path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.39 1.09V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.09-.39H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .39-1.09V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.14.38.36.72.6 1 .3.25.68.39 1.09.39H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z" />
-		</Icon>
-	);
-}
-
-function LogoutIcon({ className }: Readonly<{ className?: string }>) {
-	return (
-		<Icon className={className}>
-			<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-			<path d="M16 17l5-5-5-5" />
-			<path d="M21 12H9" />
 		</Icon>
 	);
 }
@@ -156,13 +147,7 @@ export default function ChatPage() {
 							<SettingsIcon className="size-5 text-[#667085]" />
 							設定
 						</Link>
-						<button
-							type="button"
-							className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-[#344054] hover:bg-[#f9fafb]"
-						>
-							<LogoutIcon className="size-5 text-[#667085]" />
-							ログアウト
-						</button>
+						<LogoutButton />
 					</div>
 
 					<div className="mt-5 flex items-center gap-3 border-t border-[#eaecf0] pt-5">
