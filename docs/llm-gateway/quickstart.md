@@ -88,7 +88,7 @@ type ChatCompletionResponse = {
 export async function createChatCompletion(
 	options: ChatCompletionOptions,
 ): Promise<ChatCompletionResponse> {
-	const { model = "gpt-4o", messages, stream = false } = options;
+	const { model = "zai/glm-4.6v-flash", messages, stream = false } = options;
 
 	const response = await fetch(
 		"https://api.llmgateway.io/v1/chat/completions",
@@ -131,46 +131,40 @@ export async function createChatCompletion(
 
 ---
 
-## 4 · Route Handler から LLM Gateway を呼び出す
+## 4 · Supabase Edge Function から LLM Gateway を呼び出す
 
-チャット機能は `src/app/api/chat/route.ts` に Route Handler として実装します。
+チャット機能のサーバー側処理は `supabase/functions/chat-completion/index.ts` に実装します。
+Next.js の Route Handler ではなく Supabase Edge Function に閉じることで、認証済みユーザーの JWT を使って RLS / RPC を通しながら、LLM Gateway の API キーをクライアントに露出しません。
 
-### `src/app/api/chat/route.ts`
+### `supabase/functions/chat-completion/index.ts`
 
-```ts title="src/app/api/chat/route.ts"
-import { NextRequest, NextResponse } from "next/server";
+実装済みの Edge Function は以下を担当します。
 
-import { createChatCompletion } from "@/lib/llm-gateway/client";
+- `verify_jwt = true` による認証済みユーザー限定の呼び出し
+- `chat_sessions` / `chat_messages` への会話履歴保存
+- `consume_credit` による 1 メッセージ 1 クレジット消費
+- LLM Gateway の `/v1/chat/completions` 呼び出し
+- LLM Gateway 失敗時や保存失敗時の `refund_credit`
 
-export async function POST(request: NextRequest) {
-	const { message } = (await request.json()) as { message: string };
+### ローカル実行
 
-	if (!message || typeof message !== "string") {
-		return NextResponse.json({ error: "message は必須です" }, { status: 400 });
-	}
+```bash
+pnpm run db:start
+pnpm exec supabase functions serve chat-completion --env-file .env.local
+```
 
-	try {
-		const result = await createChatCompletion({
-			model: "gpt-4o",
-			messages: [{ role: "user", content: message }],
-		});
+### デプロイ
 
-		return NextResponse.json({ message: result.message });
-	} catch (error) {
-		console.error("Chat API error:", error);
-		return NextResponse.json(
-			{ error: "AI からのレスポンスの取得に失敗しました" },
-			{ status: 500 },
-		);
-	}
-}
+```bash
+pnpm exec supabase functions deploy chat-completion
+pnpm exec supabase secrets set LLM_GATEWAY_API_KEY=llmgtwy_xxxxx
 ```
 
 #### ポイント
 
-- 入力値のバリデーションを行う
-- try-catch でエラーをハンドリングし、クライアントにエラーレスポンスを返す
-- 内部エラーの詳細はクライアントに露出しない
+- LLM Gateway API キーは Edge Function の環境変数として扱う
+- `Authorization: Bearer <user-jwt>` を Supabase client に渡し、DB 操作は RLS 下で実行する
+- service role key は返金 RPC のようなサーバー専用処理に限定する
 
 ---
 
@@ -196,17 +190,15 @@ export function ChatForm() {
 		setResponse("");
 
 		try {
-			const res = await fetch("/api/chat", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ message: input }),
-			});
+			const supabase = createClient();
+			const { data, error } = await supabase.functions.invoke(
+				"chat-completion",
+				{
+					body: { message: input },
+				},
+			);
 
-			if (!res.ok) {
-				throw new Error("API エラー");
-			}
-
-			const data = (await res.json()) as { message: string };
+			if (error) throw error;
 			setResponse(data.message);
 		} catch (error) {
 			console.error("Chat error:", error);
@@ -281,12 +273,12 @@ src/
 │       │   └── chat-form.tsx    # クライアントコンポーネント
 │       └── ...                  # queries.ts, actions.ts 等（必要に応じて）
 └── app/
-    ├── api/
-    │   └── chat/
-    │       └── route.ts         # Route Handler
-    └── (dashboard)/
-        └── chat/
-            └── page.tsx         # チャットページ
+    └── chat/
+        └── page.tsx             # チャットページ
+supabase/
+└── functions/
+    └── chat-completion/
+        └── index.ts             # LLM Gateway 呼び出し + 履歴保存 + クレジット処理
 ```
 
 ---

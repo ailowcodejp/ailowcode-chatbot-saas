@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
 	return (
 		<main className="bg-background text-foreground flex min-h-screen items-center justify-center px-6 py-16">
@@ -8,6 +10,12 @@ export default function Home() {
 					Cloudflare Workers、Next.js、Supabase を前提にした初期構成です。
 					機能実装は標準フォルダ構成に沿って追加します。
 				</p>
+				<Link
+					href="/chat"
+					className="mt-8 inline-flex h-11 items-center rounded-md bg-zinc-950 px-5 text-sm font-medium text-white"
+				>
+					チャットを開く
+				</Link>
 			</section>
 		</main>
 	);
