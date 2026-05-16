@@ -116,6 +116,10 @@ NEXT_PUBLIC_SUPABASE_URL=https://<あなたのProject URL>
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<あなたのanon public key>
 SUPABASE_SERVICE_ROLE_KEY=<あなたのservice_role key>
 LLM_GATEWAY_API_KEY=<LLM GatewayのAPIキー>
+STRIPE_SECRET_KEY=<Stripeのシークレットキー>
+STRIPE_WEBHOOK_SECRET=<Stripe Webhookの署名シークレット>
+STRIPE_ALLOWED_PRICE_IDS=<許可するStripe Price ID。複数の場合はカンマ区切り>
+ALLOWED_REDIRECT_ORIGINS=http://localhost:3000
 ```
 
 **`.dev.vars`**（Cloudflare Workersローカルプレビュー用）：
@@ -164,6 +168,10 @@ pnpm run deploy
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | ✅   | 公開可 | Supabase anon public key                                 |
 | `SUPABASE_SERVICE_ROLE_KEY`            | ✅   | 秘密   | Supabase service_role key（サーバー側のみ）              |
 | `LLM_GATEWAY_API_KEY`                  | ✅   | 秘密   | LLM Gateway の APIキー                                   |
+| `STRIPE_SECRET_KEY`                    | ✅   | 秘密   | Stripe API のシークレットキー                            |
+| `STRIPE_WEBHOOK_SECRET`                | ✅   | 秘密   | Stripe Webhook の署名検証用シークレット                  |
+| `STRIPE_ALLOWED_PRICE_IDS`             | ✅   | 秘密   | Checkout で許可する Stripe Price ID のカンマ区切り一覧   |
+| `ALLOWED_REDIRECT_ORIGINS`             | -    | 秘密   | Stripe Checkout / Portal の戻り先許可 Origin             |
 | `NEXTJS_ENV`                           | -    | 秘密   | Cloudflare環境判定（`.dev.vars` 用、値は `development`） |
 
 ## ブランチ運用

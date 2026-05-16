@@ -240,6 +240,8 @@ Stripe の新しいダッシュボード UI では、`Workbench` タブからWeb
 | --------------------------- | ------------------------------------------------------------------ |
 | `STRIPE_SECRET_KEY`         | Stripe Dashboard > APIキー > シークレットキー                      |
 | `STRIPE_WEBHOOK_SECRET`     | Stripe Dashboard > Webhook > 署名シークレット（または Stripe CLI） |
+| `STRIPE_ALLOWED_PRICE_IDS`  | Stripe Dashboard > Product > Price ID（`price_...`）               |
+| `ALLOWED_REDIRECT_ORIGINS`  | Checkout / Portal から戻してよいアプリ Origin                      |
 | `SUPABASE_URL`              | Supabase Dashboard > Project Settings > API > Project URL          |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard > Project Settings > API > service_role key     |
 
@@ -267,7 +269,7 @@ Stripe は Test と Live でデータが分離されます。
 
 1. `create-billing-checkout-session` を呼ぶ
    - Body: `priceId`, `successUrl`, `cancelUrl`
-2. `checkoutUrl` が返ることを確認
+2. `url` が返ることを確認
 3. Checkout 完了後、Webhook endpoint が 2xx を返すことを確認
 4. DBが更新されることを確認
    - `billing_customers`

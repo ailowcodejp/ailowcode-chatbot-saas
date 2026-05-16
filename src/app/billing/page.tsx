@@ -1,28 +1,28 @@
 import Link from "next/link";
 
-import { ChatForm } from "@/features/chat/components/chat-form";
+import { BillingPanel } from "@/features/billing/components/billing-panel";
 
-export default function ChatPage() {
+export const dynamic = "force-dynamic";
+
+export default function BillingPage() {
 	return (
 		<main className="min-h-screen bg-zinc-50 px-4 py-8 text-zinc-950 sm:px-6">
-			<div className="mx-auto max-w-4xl">
+			<div className="mx-auto max-w-5xl">
 				<div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 					<div>
 						<p className="text-sm font-medium text-zinc-500">
 							ailowcode-chatbot-saas
 						</p>
-						<h1 className="mt-2 text-3xl font-semibold">
-							LLM Gateway チャット
-						</h1>
+						<h1 className="mt-2 text-3xl font-semibold">課金管理</h1>
 					</div>
 					<Link
-						href="/billing"
+						href="/chat"
 						className="inline-flex h-10 items-center justify-center rounded-md border border-zinc-300 px-4 text-sm font-medium"
 					>
-						課金管理
+						チャットへ戻る
 					</Link>
 				</div>
-				<ChatForm />
+				<BillingPanel />
 			</div>
 		</main>
 	);

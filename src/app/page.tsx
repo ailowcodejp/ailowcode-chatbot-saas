@@ -16,6 +16,12 @@ export default function Home() {
 				>
 					チャットを開く
 				</Link>
+				<Link
+					href="/billing"
+					className="mt-8 ml-3 inline-flex h-11 items-center rounded-md border border-zinc-300 px-5 text-sm font-medium"
+				>
+					課金管理
+				</Link>
 			</section>
 		</main>
 	);
