@@ -1,2 +1,5 @@
 # Load .env.development* files when running `wrangler dev`
 NEXTJS_ENV=development
+
+# LLM Gateway
+LLM_GATEWAY_API_KEY=""
