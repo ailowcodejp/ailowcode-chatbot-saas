@@ -4,6 +4,8 @@ import { AuthPageShell } from "@/features/auth/components/auth-page-shell";
 import { signInWithPassword } from "@/features/auth/actions";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 type LoginPageProps = Readonly<{
 	searchParams: Promise<{ error?: string; next?: string }>;
 }>;
