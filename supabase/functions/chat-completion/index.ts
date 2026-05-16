@@ -42,7 +42,7 @@ const corsHeaders = {
 };
 
 const maxMessageLength = 4000;
-const defaultModel = Deno.env.get("LLM_GATEWAY_MODEL") ?? "zai/glm-4.6v-flash";
+const defaultModel = Deno.env.get("LLM_GATEWAY_MODEL") ?? "openai/gpt-4o-mini";
 const llmGatewayUrl =
 	Deno.env.get("LLM_GATEWAY_CHAT_COMPLETIONS_URL") ??
 	"https://api.llmgateway.io/v1/chat/completions";
