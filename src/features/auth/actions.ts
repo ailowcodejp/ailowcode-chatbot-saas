@@ -26,7 +26,7 @@ export async function login(formData: FormData) {
 	}
 
 	revalidatePath(routes.home, "layout");
-	redirect(routes.home);
+	redirect(routes.chat);
 }
 
 export async function signup(formData: FormData) {
@@ -48,5 +48,11 @@ export async function signup(formData: FormData) {
 	}
 
 	revalidatePath(routes.home, "layout");
-	redirect(routes.home);
+	redirect(routes.chat);
+}
+
+export async function logout() {
+	const supabase = await createClient();
+	await supabase.auth.signOut();
+	redirect(routes.login);
 }
