@@ -29,6 +29,21 @@ const config = [
 			"@typescript-eslint/consistent-type-imports": "error",
 		},
 	},
+	{
+		files: ["tests/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
+		languageOptions: {
+			globals: {
+				describe: "readonly",
+				it: "readonly",
+				expect: "readonly",
+				vi: "readonly",
+				beforeEach: "readonly",
+				afterEach: "readonly",
+				beforeAll: "readonly",
+				afterAll: "readonly",
+			},
+		},
+	},
 	prettierConfig,
 ];
 
