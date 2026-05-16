@@ -90,3 +90,18 @@ AI 駆動開発の原則とセキュリティポリシーです。`docs/agent-ru
 
 - `docs/agent-rules/ai-driven-development-principles.md`
 - `docs/agent-rules/ai-tool-security-policy.md`
+
+### Supabase Agent Skills
+
+プロジェクトにインストール済みの Supabase 公式エージェントスキルです。`.agents/skills/` 配下に配置されており、AI エージェントが Supabase 関連のタスクを実行する際のナレッジソースとして利用されます。
+
+| スキル                                                                                       | 説明                                                                                                                        |
+| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| [supabase](.agents/skills/supabase/SKILL.md)                                                 | Supabase 全般（Database, Auth, Edge Functions, Realtime, Storage, Vectors, Cron, Queues）の操作・実装・セキュリティチェック |
+| [supabase-postgres-best-practices](.agents/skills/supabase-postgres-best-practices/SKILL.md) | Postgres パフォーマンス最適化（クエリ設計、インデックス、スキーマ設計、RLS セキュリティ など）                              |
+
+これらのスキルを追加・更新するには以下のコマンドを実行してください。
+
+```bash
+pnpm dlx skills add supabase/agent-skills
+```
