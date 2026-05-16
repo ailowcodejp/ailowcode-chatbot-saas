@@ -451,18 +451,27 @@ Supabase 接続情報などは `.env.local` に設定します。
 ```env
 NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 サーバー側限定で強い権限が必要な場合のみ、以下のような値を使います。
 
 ```env
 SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
+LLM_GATEWAY_API_KEY=YOUR_LLM_GATEWAY_API_KEY
+STRIPE_SECRET_KEY=sk_test_xxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxx
+STRIPE_ALLOWED_PRICE_IDS=price_xxxxx
+ALLOWED_REDIRECT_ORIGINS=http://localhost:3000
 ```
 
 ### 注意
 
 - `NEXT_PUBLIC_` が付いた値はブラウザに公開される前提で扱う
 - `SUPABASE_SERVICE_ROLE_KEY` は Client Component で使わない
+- `STRIPE_SECRET_KEY` と `STRIPE_WEBHOOK_SECRET` はサーバー側・Supabase Edge Functions 側だけで使う
+- `STRIPE_ALLOWED_PRICE_IDS` には Checkout 作成を許可する Price ID だけを設定する
+- `ALLOWED_REDIRECT_ORIGINS` には Checkout / Customer Portal から戻してよい Origin だけを設定する
 - secret key をコードに直接書かない
 - `.env.local` をコミットしない
 - `.env.example` にはダミー値だけを書く

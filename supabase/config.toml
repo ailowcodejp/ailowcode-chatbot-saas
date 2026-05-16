@@ -383,6 +383,15 @@ deno_version = 2
 [functions.chat-completion]
 verify_jwt = true
 
+[functions.create-billing-checkout-session]
+verify_jwt = true
+
+[functions.create-billing-portal-session]
+verify_jwt = true
+
+[functions.stripe-billing-webhook]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
