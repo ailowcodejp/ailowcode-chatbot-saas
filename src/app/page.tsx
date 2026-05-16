@@ -11,16 +11,22 @@ export default function Home() {
 					機能実装は標準フォルダ構成に沿って追加します。
 				</p>
 				<Link
-					href="/chat"
-					className="mt-8 inline-flex h-11 items-center rounded-md bg-zinc-950 px-5 text-sm font-medium text-white"
+					href="/login"
+					className="mt-8 inline-flex h-11 items-center rounded-md bg-[#7f56d9] px-5 text-sm font-semibold text-white hover:bg-[#6941c6]"
 				>
-					チャットを開く
+					ログイン
 				</Link>
 				<Link
-					href="/billing"
+					href="/signup"
+					className="mt-8 ml-3 inline-flex h-11 items-center rounded-md border border-[#d0d5dd] px-5 text-sm font-semibold text-[#344054]"
+				>
+					サインアップ
+				</Link>
+				<Link
+					href="/chat"
 					className="mt-8 ml-3 inline-flex h-11 items-center rounded-md border border-zinc-300 px-5 text-sm font-medium"
 				>
-					課金管理
+					チャットを開く
 				</Link>
 			</section>
 		</main>

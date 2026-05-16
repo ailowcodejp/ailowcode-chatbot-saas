@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { signOut } from "@/features/auth/actions";
 import { ChatForm } from "@/features/chat/components/chat-form";
 
 const chatHistories = [
@@ -156,13 +157,15 @@ export default function ChatPage() {
 							<SettingsIcon className="size-5 text-[#667085]" />
 							設定
 						</Link>
-						<button
-							type="button"
-							className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-[#344054] hover:bg-[#f9fafb]"
-						>
-							<LogoutIcon className="size-5 text-[#667085]" />
-							ログアウト
-						</button>
+						<form action={signOut}>
+							<button
+								type="submit"
+								className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-[#344054] hover:bg-[#f9fafb]"
+							>
+								<LogoutIcon className="size-5 text-[#667085]" />
+								ログアウト
+							</button>
+						</form>
 					</div>
 
 					<div className="mt-5 flex items-center gap-3 border-t border-[#eaecf0] pt-5">
