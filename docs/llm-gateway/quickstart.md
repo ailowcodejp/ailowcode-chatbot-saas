@@ -88,7 +88,7 @@ type ChatCompletionResponse = {
 export async function createChatCompletion(
 	options: ChatCompletionOptions,
 ): Promise<ChatCompletionResponse> {
-	const { model = "zai/glm-4.6v-flash", messages, stream = false } = options;
+	const { model = "openai/gpt-4o-mini", messages, stream = false } = options;
 
 	const response = await fetch(
 		"https://api.llmgateway.io/v1/chat/completions",
