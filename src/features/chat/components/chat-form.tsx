@@ -1,11 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
 import { createClient } from "@/lib/supabase/client";
 
-type ChatMessage = {
+export type ChatMessage = {
 	id: string;
 	role: "user" | "assistant";
 	content: string;
@@ -70,30 +71,50 @@ function getErrorMessage(error: unknown): string {
 	return "AIからの返信を取得できませんでした。時間をおいて再度お試しください。";
 }
 
-async function getFunctionErrorCode(error: unknown): Promise<string | null> {
+async function getFunctionErrorDetails(
+	error: unknown,
+): Promise<{ code: string | null; message: string | null }> {
 	if (
 		typeof error !== "object" ||
 		error === null ||
 		!("context" in error) ||
 		!(error.context instanceof Response)
 	) {
-		return null;
+		return { code: null, message: null };
 	}
 
 	try {
-		const body = (await error.context.clone().json()) as { error?: unknown };
-		return typeof body.error === "string" ? body.error : null;
+		const body = (await error.context.clone().json()) as {
+			error?: string;
+			message?: string;
+		};
+		return {
+			code: typeof body.error === "string" ? body.error : null,
+			message: typeof body.message === "string" ? body.message : null,
+		};
 	} catch {
-		return null;
+		return { code: null, message: null };
 	}
 }
 
-export function ChatForm() {
+type ChatFormProps = {
+	sessionId?: string;
+	initialMessages?: ChatMessage[];
+	title?: string;
+};
+
+export function ChatForm({
+	sessionId,
+	initialMessages = [],
+	title = "新しいチャット",
+}: ChatFormProps) {
+	const router = useRouter();
 	const [input, setInput] = useState("");
-	const [sessionId, setSessionId] = useState<string | null>(null);
-	const [messages, setMessages] = useState<ChatMessage[]>([]);
+	const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const isNewChat = !sessionId;
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -113,7 +134,9 @@ export function ChatForm() {
 			content: message,
 		};
 
-		setMessages((current) => [...current, optimisticUserMessage]);
+		if (!isNewChat) {
+			setMessages((current) => [...current, optimisticUserMessage]);
+		}
 
 		try {
 			const supabase = createClient();
@@ -137,8 +160,15 @@ export function ChatForm() {
 				);
 
 			if (error) {
+				const details = await getFunctionErrorDetails(error);
+				console.error("[ChatForm] Edge Function error:", {
+					functionError: error,
+					errorCode: details.code,
+					errorMessage: details.message,
+				});
 				throw {
-					code: await getFunctionErrorCode(error),
+					code: details.code,
+					message: details.message,
 					cause: error,
 				};
 			}
@@ -147,7 +177,11 @@ export function ChatForm() {
 				throw new Error("empty_function_response");
 			}
 
-			setSessionId(data.sessionId);
+			if (isNewChat) {
+				router.push(`/chat/${data.sessionId}`);
+				return;
+			}
+
 			setMessages((current) => [
 				...current.map((item) =>
 					item.id === optimisticUserMessage.id
@@ -161,10 +195,13 @@ export function ChatForm() {
 				},
 			]);
 		} catch (error) {
+			console.error("[ChatForm] Submission error:", error);
 			setErrorMessage(getErrorMessage(error));
-			setMessages((current) =>
-				current.filter((item) => item.id !== optimisticUserMessage.id),
-			);
+			if (!isNewChat) {
+				setMessages((current) =>
+					current.filter((item) => item.id !== optimisticUserMessage.id),
+				);
+			}
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -176,7 +213,7 @@ export function ChatForm() {
 				<div>
 					<div className="flex items-center gap-2">
 						<h2 className="text-lg leading-7 font-semibold text-[#101828]">
-							新しいチャット
+							{title}
 						</h2>
 						<span className="rounded-full border border-[#d0d5dd] bg-[#f2f4f7] px-2 py-0.5 text-xs font-medium text-[#344054]">
 							{messages.length} messages
