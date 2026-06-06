@@ -236,14 +236,19 @@ Stripe の新しいダッシュボード UI では、`Workbench` タブからWeb
 
 ### 5-3. Supabase Edge Functions に設定する環境変数
 
-| 環境変数                    | 取得元                                                             |
-| --------------------------- | ------------------------------------------------------------------ |
-| `STRIPE_SECRET_KEY`         | Stripe Dashboard > APIキー > シークレットキー                      |
-| `STRIPE_WEBHOOK_SECRET`     | Stripe Dashboard > Webhook > 署名シークレット（または Stripe CLI） |
-| `STRIPE_ALLOWED_PRICE_IDS`  | Stripe Dashboard > Product > Price ID（`price_...`）               |
-| `ALLOWED_REDIRECT_ORIGINS`  | Checkout / Portal から戻してよいアプリ Origin                      |
-| `SUPABASE_URL`              | Supabase Dashboard > Project Settings > API > Project URL          |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard > Project Settings > API > service_role key     |
+| 環境変数                      | 取得元                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| `STRIPE_SECRET_KEY`           | Stripe Dashboard > APIキー > シークレットキー                            |
+| `STRIPE_WEBHOOK_SECRET`       | Stripe Dashboard > Webhook > 署名シークレット（または Stripe CLI）       |
+| `STRIPE_ALLOWED_PRICE_IDS`    | Stripe Dashboard > Product > Price ID（`price_...`、複数はカンマ区切り） |
+| `STRIPE_PRO_MONTHLY_PRICE_ID` | 任意: 月額プランとして扱う Price ID                                      |
+| `STRIPE_PRO_YEARLY_PRICE_ID`  | 任意: 年額プランとして扱う Price ID                                      |
+| `ALLOWED_REDIRECT_ORIGINS`    | Checkout / Portal から戻してよいアプリ Origin                            |
+| `SUPABASE_URL`                | Supabase Dashboard > Project Settings > API > Project URL                |
+| `SUPABASE_SERVICE_ROLE_KEY`   | Supabase Dashboard > Project Settings > API > service_role key           |
+
+> [!note]
+> 受講生ごとの Stripe Test mode workspace で作成した `price_...` を使ってください。月額/年額を作る場合、`STRIPE_PRO_MONTHLY_PRICE_ID` / `STRIPE_PRO_YEARLY_PRICE_ID` に設定した Price ID は `STRIPE_ALLOWED_PRICE_IDS` にも含めます。
 
 ---
 

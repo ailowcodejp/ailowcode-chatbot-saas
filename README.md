@@ -82,9 +82,11 @@ pnpm install
 1. [Supabase Dashboard](https://supabase.com) で **New project** を作成
 2. プロジェクト作成後、`Project Settings` → `API` から以下を控える：
    - **Project URL**（`NEXT_PUBLIC_SUPABASE_URL` 用）
-   - **anon public key**（`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 用）
+   - **publishable key / anon public key**（`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 用）
    - **service_role key**（`SUPABASE_SERVICE_ROLE_KEY` 用、サーバー側のみ）
 3. `Project Settings` → `Database` の **Database password** も控える
+
+ローカル Supabase に接続して作業する場合は、`pnpm run db:start` 後に `pnpm exec supabase status` で表示される `API URL`、`anon key`、`service_role key` を同じ env に設定してください。
 
 ### 3. Supabase CLI でログイン & リンク
 
@@ -108,25 +110,44 @@ pnpm exec supabase db push
 
 ### 5. 環境変数を設定
 
-**`.env.local`**（ルートに新規作成、Git管理外）に以下を設定します：
+ルートの `.env.example` を `.env.local` にコピーし、**自分の Supabase / Stripe の値**に差し替えます。`.env.local` は Git 管理外です。
+
+```bash
+cp .env.example .env.local
+```
 
 ```env
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_SUPABASE_URL=https://<あなたのProject URL>
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<あなたのanon public key>
+NEXT_PUBLIC_SUPABASE_URL=https://<あなたのProject URL または ローカルAPI URL>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<あなたのpublishable key / anon key>
 SUPABASE_SERVICE_ROLE_KEY=<あなたのservice_role key>
 LLM_GATEWAY_API_KEY=<LLM GatewayのAPIキー>
-STRIPE_SECRET_KEY=<Stripeのシークレットキー>
-STRIPE_WEBHOOK_SECRET=<Stripe Webhookの署名シークレット>
+STRIPE_SECRET_KEY=<あなたのStripe test secret key>
+STRIPE_WEBHOOK_SECRET=<あなたのStripe Webhook署名シークレット>
 STRIPE_ALLOWED_PRICE_IDS=<許可するStripe Price ID。複数の場合はカンマ区切り>
+STRIPE_PRO_MONTHLY_PRICE_ID=<任意: 月額プランのPrice ID>
+STRIPE_PRO_YEARLY_PRICE_ID=<任意: 年額プランのPrice ID>
 ALLOWED_REDIRECT_ORIGINS=http://localhost:3000
 ```
 
-**`.dev.vars`**（Cloudflare Workersローカルプレビュー用）：
+Stripe は受講生ごとの **Test mode workspace** で Product / Price / Webhook を作成し、その workspace の `sk_test_...`、`whsec_...`、`price_...` を設定してください。月額/年額を作る場合は、該当 Price ID を `STRIPE_PRO_MONTHLY_PRICE_ID` / `STRIPE_PRO_YEARLY_PRICE_ID` にも設定すると、Webhook 側のプラン判定が安定します。
 
-```env
-NEXTJS_ENV=development
-LLM_GATEWAY_API_KEY=<LLM GatewayのAPIキー>
+**Supabase Edge Functions 用のローカル secret** は、Next.js の `.env.local` とは別に `supabase/functions/.env` に設定します。
+
+```bash
+cp supabase/functions/.env.example supabase/functions/.env
+```
+
+リモート Supabase Edge Functions には、各自の Supabase プロジェクトにリンクした状態で secret を登録します。
+
+```bash
+pnpm exec supabase secrets set --env-file supabase/functions/.env
+```
+
+**`.dev.vars`**（Cloudflare Workersローカルプレビュー用）も、`.dev.vars.example` をコピーして自分の値に差し替えます。
+
+```bash
+cp .dev.vars.example .dev.vars
 ```
 
 ### 6. ローカル開発
@@ -171,6 +192,8 @@ pnpm run deploy
 | `STRIPE_SECRET_KEY`                    | ✅   | 秘密   | Stripe API のシークレットキー                            |
 | `STRIPE_WEBHOOK_SECRET`                | ✅   | 秘密   | Stripe Webhook の署名検証用シークレット                  |
 | `STRIPE_ALLOWED_PRICE_IDS`             | ✅   | 秘密   | Checkout で許可する Stripe Price ID のカンマ区切り一覧   |
+| `STRIPE_PRO_MONTHLY_PRICE_ID`          | -    | 秘密   | 月額プランとして扱う Stripe Price ID                     |
+| `STRIPE_PRO_YEARLY_PRICE_ID`           | -    | 秘密   | 年額プランとして扱う Stripe Price ID                     |
 | `ALLOWED_REDIRECT_ORIGINS`             | -    | 秘密   | Stripe Checkout / Portal の戻り先許可 Origin             |
 | `NEXTJS_ENV`                           | -    | 秘密   | Cloudflare環境判定（`.dev.vars` 用、値は `development`） |
 

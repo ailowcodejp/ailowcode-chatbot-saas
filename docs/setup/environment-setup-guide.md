@@ -1,91 +1,70 @@
-# 環境構築ガイドライン
+# 受講生向け 環境構築ガイド
 
-## 前提
+このドキュメントは、AILowcode スクールの受講生が **自分の Supabase プロジェクト** と **自分の Stripe ワークスペース** を使って、この教材リポジトリを動かすための手順です。
 
-このガイドラインは、Next.js / TypeScript / App Router / Tailwind CSS / Supabase を利用する案件に参加する新人エンジニアが、開発を始める前にローカル環境を整えるための手順です。
+このリポジトリでは次の構成を使います。
 
-### 関連ドキュメント
-
-- 新規プロジェクト開始: `docs/new-project-setup-guide.md`
-- 機能追加・修正フロー: `docs/feature-development-guide.md`
-- フォルダ構成: `docs/coding-guide/11_nextjs-folder-structure-guide.md`
-
-このプロジェクトでは、以下を標準とします。
-
-- GitHub 接続方式: HTTPS
-- GitHub 認証: GitHub CLI
-- エディター: Visual Studio Code
-- Node.js: 22.13.0以上
-- パッケージマネージャー: pnpm
-- 基準ブランチ: main
-- 作業方式: main から作業ブランチを作成し、Pull Request 経由で main に反映
+| 項目                       | 技術                             |
+| -------------------------- | -------------------------------- |
+| フロントエンド / API       | Next.js 16 App Router + React 19 |
+| 言語                       | TypeScript 5                     |
+| UI                         | Tailwind CSS 4                   |
+| DB / Auth / Edge Functions | Supabase                         |
+| 決済                       | Stripe                           |
+| AI                         | LLM Gateway                      |
+| デプロイ                   | Cloudflare Workers / OpenNext.js |
+| パッケージマネージャー     | pnpm                             |
 
 ---
 
-## pnpm を使う理由
+## 1. このガイドで作る環境
 
-このプロジェクトで pnpm を標準とする理由は以下の通りです。
+受講生ごとに、以下の環境を個別に作成します。
 
-- **ディスク容量の節約**: pnpm はハードリンクを使用し、パッケージをグローバルストアに一元管理するため、ディスク容量を大幅に節約できます。複数プロジェクトで同じパッケージを使用する場合、重複して保存されません。
-- **インストール速度の高速化**: ハードリンクによるコピーの回避と、効率的な依存関係解決により、npm や yarn よりも高速にインストールできます。
-- **厳格な依存関係管理**: pnpm は phantom dependencies（実際には依存関係にないパッケージが参照できる問題）を防ぎ、package.json に明示的に記述された依存関係のみを使用できるため、予期せぬバグを防げます。
-- **シンプルな node_modules 構造**: シンボリックリンクを使用したフラットな構造により、node_modules の階層が深くならず、理解しやすくなります。
-- **npm との互換性**: npm と同じコマンドインターフェースを持ち、既存のワークフローを変更せずに移行できます。
+```mermaid
+flowchart TD
+    Repo[教材リポジトリ] --> Local[受講生のPC]
+    Local --> Next[Next.js dev server]
+    Next --> Supabase[受講生自身の Supabase]
+    Next --> Stripe[受講生自身の Stripe Test workspace]
+    Supabase --> Edge[Supabase Edge Functions]
+    Edge --> Stripe
+    Edge --> LLM[LLM Gateway]
+```
 
-これらの理由から、プロジェクト間で一貫した環境を維持し、効率的な開発を実現するために pnpm を採用しています。
+重要なポイントは次の通りです。
 
----
-
-## 1. このガイドラインの目的
-
-新人エンジニアが開発開始前に迷いやすい、次の内容を統一することを目的とします。
-
-- 必要なツールを正しくインストールする
-- GitHub に正しい方法で認証する
-- プロジェクトをローカルに取得する
-- pnpm / Next.js / Supabase の基本動作を確認する
-- 秘密情報を誤って Git に含めない
-- 開発開始前に最低限の品質確認ができる状態にする
-
-このガイドラインに沿って環境構築を行い、個人ごとの手順差異をできるだけ減らしてください。
+- 他の受講生や講師の Supabase プロジェクトを使わない
+- 他の受講生や講師の Stripe API Key / Price ID を使わない
+- `.env.local`、`.dev.vars`、`supabase/functions/.env` は Git にコミットしない
+- `.env.example` などのサンプルファイルには本物の secret を書かない
 
 ---
 
-## 2. 最初に確認すること
+## 2. 事前に用意するもの
 
-環境構築を始める前に、担当者またはプロジェクト責任者へ以下を確認してください。
+### アカウント
 
-- 参加する GitHub organization / repository
-- GitHub アカウントが招待済みか
-- 利用する Supabase project
-- `.env.local` に設定する値の受け取り方法
-- ローカル Supabase を使うか
-- Node.js の推奨バージョン
-- 作業開始時に切るブランチ名
+| 必要なもの            | 用途                                |
+| --------------------- | ----------------------------------- |
+| GitHub アカウント     | リポジトリ取得                      |
+| Supabase アカウント   | DB / Auth / Edge Functions          |
+| Stripe アカウント     | 決済テスト                          |
+| LLM Gateway API Key   | AI チャット機能                     |
+| Cloudflare アカウント | Workers preview / deploy を行う場合 |
 
-> [!warning]
-> `.env.local` や Supabase の secret key は Slack やメールにそのまま貼らず、チームで決められた安全な方法で共有してください。
+### ローカルツール
 
----
+| ツール         | 推奨                                          |
+| -------------- | --------------------------------------------- |
+| Node.js        | `22.13.0` 以上                                |
+| pnpm           | `package.json` の `packageManager` に合わせる |
+| Git            | 最新安定版                                    |
+| GitHub CLI     | GitHub 認証用                                 |
+| Docker Desktop | ローカル Supabase を使う場合に必要            |
+| Stripe CLI     | ローカルで Webhook を確認する場合に推奨       |
 
-## 3. インストールするツール
-
-開発開始前に、最低限以下をインストールします。
-
-- Git
-- Node.js
-- pnpm
-- Visual Studio Code
-- GitHub CLI
-- Docker Desktop または Docker 互換環境
-
-Supabase CLI は、原則としてプロジェクトごとの `devDependencies` として管理します。グローバルインストールではなく、プロジェクト内で `pnpm dlx` または pnpm scripts 経由で実行します。
-
----
-
-## 4. 各ツールの確認
-
-ターミナルで以下を実行し、バージョンが表示されることを確認します。
+バージョン確認:
 
 ```bash
 git --version
@@ -93,669 +72,549 @@ node -v
 pnpm -v
 gh --version
 docker --version
-docker compose version
 ```
 
-Node.js は **22.13.0以上** を推奨します。
-
-```bash
-node -v
-```
-
-表示されたバージョンが `v22.13.0` 以上でない場合は、担当者に確認してから更新してください。
-
-このプロジェクトでは `package.json` の `packageManager` で pnpm のバージョンを固定します。pnpm の新しいバージョンは Node.js の最低バージョンも引き上げることがあるため、Node.js と pnpm はセットで確認してください。
+Node.js が古い場合は、先に Node.js を更新してください。
 
 ---
 
-## 5. pnpm のインストール
+## 3. リポジトリを取得する
 
-まだ pnpm をインストールしていない場合は、以下のコマンドでインストールします。
-
-### npm を使ってインストールする場合
-
-```bash
-npm install -g pnpm
-```
-
-### インストール後の確認
-
-インストール後、バージョンが表示されることを確認します。
-
-```bash
-pnpm -v
-```
-
-> [!note]
-> このプロジェクトでは pnpm を標準とします。npm や yarn は使用しないでください。
-
----
-
-## 6. Visual Studio Code の準備
-
-VS Code には、最低限以下の拡張機能を入れてください。
-
-- ESLint
-- Prettier
-- Tailwind CSS IntelliSense
-- GitHub Pull Requests and Issues
-- EditorConfig
-- Git Graph
-
-VS Code でプロジェクトを開いたあと、以下を確認します。
-
-- ターミナルが使える
-- Source Control タブで Git 差分が見える
-- TypeScript のエラーが表示される
-- ESLint のエラーが表示される
-- Tailwind CSS の補完が効く
-
----
-
-## 7. GitHub CLI でログインする
-
-このプロジェクトでは、GitHubへの接続方式をHTTPSに統一します。
-
-SSHは使わず、GitHub CLIで認証してください。
+GitHub CLI を使う場合:
 
 ```bash
 gh auth login
+gh repo clone ailowcodejp/ailowcode-chatbot-saas
+cd ailowcode-chatbot-saas
 ```
 
-`gh auth login` では、基本的に以下を選択します。
-
-- GitHub.com
-- HTTPS
-- ブラウザ認証
-
-認証後、以下でログイン状態を確認します。
+通常の `git clone` を使う場合:
 
 ```bash
-gh auth status
+git clone https://github.com/ailowcodejp/ailowcode-chatbot-saas.git
+cd ailowcode-chatbot-saas
 ```
 
----
-
-## 8. リポジトリをローカルに取得する
-
-### GitHub CLI を使う場合（推奨）
-
-```bash
-gh repo clone your-org/your-project
-cd your-project
-```
-
-HTTPS URL を手動でコピーする必要がなく、GitHub CLI の認証情報が使われます。
-
-### git clone を使う場合
-
-GitHubのHTTPS URLを使ってcloneします。
-
-```bash
-git clone https://github.com/your-org/your-project.git
-cd your-project
-```
-
-SSH URLは使いません。
-
-clone後、現在の状態を確認します。
-
-```bash
-git branch
-git status
-```
-
-通常は`main`ブランチにいる状態です。
-
----
-
-## 9. 依存関係をインストールする
-
-プロジェクト直下で以下を実行します。
+依存関係をインストールします。
 
 ```bash
 pnpm install
 ```
 
-このプロジェクトではpnpmを標準とします。pnpm / yarn / npmを混在させないでください。
+---
 
-### pnpm install と pnpm install --frozen-lockfile の使い分け
+## 4. Supabase の接続方式を選ぶ
 
-ローカル開発では、基本的に以下を使います。
+この教材では、次のどちらかで作業できます。
 
-```bash
-pnpm install
-```
+| 方式              | 使う場面                                | 特徴                                             |
+| ----------------- | --------------------------------------- | ------------------------------------------------ |
+| リモート Supabase | スクール課題・提出におすすめ            | 自分の Supabase Dashboard 上のプロジェクトを使う |
+| ローカル Supabase | DB を安全にリセットしながら試したい場合 | Docker 上にローカル DB を起動する                |
 
-CI やクリーン環境で厳密に再現したい場合は、以下を使います。
-
-```bash
-pnpm install --frozen-lockfile
-```
-
-### .npmrc の設定
-
-プロジェクト直下に `.npmrc` ファイルを作成し、以下の設定を含めてください。
-
-```ini
-minimum-release-age=1440
-```
-
-この設定は、パッケージの最小リリース年齢を1440分（24時間）に設定するもので、リリース直後の不安定なパッケージのインストールを防ぐために重要です。すべてのプロジェクトで必ずこの設定を含めてください。
-
-### ESLint と Prettier のインストール
-
-まだインストールされていない場合は、以下を実行して ESLint と Prettier をインストールします。
-
-```bash
-pnpm add -D typescript eslint prettier eslint-config-next eslint-config-prettier eslint-plugin-import prettier-plugin-tailwindcss
-```
-
-> [!important]
-> ESLint 10 以降は flat config（`eslint.config.mjs`）が必須です。従来の `.eslintrc.json` は使用できません。
-
-インストール後、プロジェクト直下に `eslint.config.mjs`、`.prettierrc`、`.prettierignore` を作成します。
-
-#### eslint.config.mjs の例
-
-```js
-import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
-import nextTypescript from "eslint-config-next/typescript";
-import prettierConfig from "eslint-config-prettier";
-
-/** @type {import("eslint").Linter.Config[]} */
-const config = [
-	{
-		ignores: [
-			"node_modules/**",
-			".next/**",
-			"out/**",
-			"public/**",
-			".wrangler/**",
-			"dist/**",
-		],
-	},
-	...nextCoreWebVitals,
-	...nextTypescript,
-	{
-		files: ["**/*.{ts,tsx}"],
-		rules: {
-			"@typescript-eslint/no-unused-vars": [
-				"error",
-				{ argsIgnorePattern: "^_" },
-			],
-			"@typescript-eslint/no-explicit-any": "warn",
-			"@typescript-eslint/consistent-type-imports": "error",
-		},
-	},
-	prettierConfig,
-];
-
-export default config;
-```
-
-> [!note]
-> `eslint-config-next` v16 はフラット config を直接エクスポートするため、`FlatCompat` は不要です。`eslint-config-next/core-web-vitals` と `eslint-config-next/typescript` を直接スプレッドして使用します。`eslint-config-prettier` を末尾に配置することで、ESLint と Prettier のルール競合を防いでいます。
-
-#### .prettierrc の例
-
-```json
-{
-	"semi": true,
-	"singleQuote": false,
-	"tabWidth": 2,
-	"useTabs": true,
-	"trailingComma": "all",
-	"printWidth": 80,
-	"bracketSpacing": true,
-	"arrowParens": "always",
-	"endOfLine": "lf",
-	"plugins": ["prettier-plugin-tailwindcss"]
-}
-```
-
-> [!note]
-> `prettier-plugin-tailwindcss` を使用して、Tailwind CSS のクラス名を自動的にソートします。
-
-#### .prettierignore の例
-
-```text
-node_modules
-.next
-out
-dist
-public
-.wrangler
-pnpm-lock.yaml
-```
-
-#### package.json に追加するスクリプト
-
-```json
-{
-	"scripts": {
-		"lint": "eslint .",
-		"lint:fix": "eslint . --fix",
-		"format": "prettier --write .",
-		"format:check": "prettier --check ."
-	}
-}
-```
-
-設定後、以下で動作確認をします。
-
-```bash
-pnpm lint
-pnpm format:check
-```
+迷った場合は、まず **リモート Supabase** で進めてください。
 
 ---
 
-## 10. Supabase CLI を確認する
+## 5. Supabase リモートプロジェクトを作成する
 
-Supabase CLI は、プロジェクトごとの `devDependencies` として管理します。
+1. [Supabase Dashboard](https://supabase.com) を開く
+2. **New project** をクリック
+3. 任意の Organization を選択
+4. Project name を入力
+5. Database Password を保存する
+6. Region を選択して作成する
 
-**推奨理由**:
+作成後、Dashboard で次の値を確認します。
 
-- プロジェクトごとにツールのバージョンを固定できる
-- チーム全体で同じバージョンを使用できる
-- CI環境とローカル環境で同じバージョンを使える
+| Supabase Dashboard の場所                                  | `.env.local` に入れる変数              |
+| ---------------------------------------------------------- | -------------------------------------- |
+| Project Settings → API → Project URL                       | `NEXT_PUBLIC_SUPABASE_URL`             |
+| Project Settings → API → publishable key / anon public key | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` |
+| Project Settings → API → service_role key                  | `SUPABASE_SERVICE_ROLE_KEY`            |
 
-まだ入っていない場合は、担当者に確認したうえで以下を実行します。
-
-```bash
-pnpm install supabase --save-dev
-```
-
-利用できることを確認します。
-
-```bash
-pnpm exec supabase --help
-```
-
-よく使うコマンドは、プロジェクトの `package.json` の `scripts` にまとめることを推奨します。
-
-```json
-{
-	"scripts": {
-		"supabase": "supabase",
-		"db:start": "supabase start",
-		"db:stop": "supabase stop",
-		"db:reset": "supabase db reset",
-		"db:diff": "supabase db diff",
-		"db:push": "supabase db push",
-		"gen:types": "supabase gen types typescript --local > src/types/database.types.ts"
-	}
-}
-```
+> [!warning]
+> `SUPABASE_SERVICE_ROLE_KEY` は強い権限を持つ secret です。ブラウザ、Client Component、公開リポジトリに出してはいけません。
 
 ---
 
-## 11. Supabase にログインする
+## 6. Supabase CLI でリモートプロジェクトにリンクする
 
-クラウド Supabase project と連携する場合は、Supabase CLI でログインします。
+Supabase CLI はこのリポジトリの `devDependencies` に入っています。グローバルインストールではなく、`pnpm exec` 経由で実行します。
+
+ログイン:
 
 ```bash
 pnpm exec supabase login
 ```
 
-既存の Supabase project とローカルプロジェクトを紐付ける場合は、担当者に確認してから実行します。
+リモートプロジェクトにリンク:
 
 ```bash
-pnpm exec supabase link
+pnpm exec supabase link --project-ref <あなたのproject-ref>
 ```
 
-> [!warning]
-> 接続先の Supabase project を間違えると、別環境に対して操作してしまう可能性があります。`link` 前に必ず対象 project を確認してください。
+`project-ref` は Supabase Dashboard の URL で確認できます。
+
+```text
+https://supabase.com/dashboard/project/<ここがproject-ref>
+```
 
 ---
 
-## 12. ローカル Supabase を使う場合
+## 7. DB マイグレーションを反映する
 
-ローカル Supabase を使う場合は、Docker が起動していることを確認してから進めます。
-
-初期化されていないプロジェクトでは、以下を実行します。
+リモート Supabase にテーブル、RLS、RPC などを作成します。
 
 ```bash
-pnpm exec supabase init
+pnpm run db:push
 ```
 
-ローカル Supabase を起動します。
+型定義を生成します。
 
 ```bash
-pnpm exec supabase start
+pnpm run gen:types
 ```
 
-起動状態や接続情報は以下で確認できます。
+> [!note]
+> `gen:types` はデフォルトではローカル Supabase 向けの型生成コマンドです。リモート DB の型を生成したい場合は、必要に応じて Supabase CLI の `--project-id` を使ってください。
+
+---
+
+## 8. ローカル Supabase を使う場合
+
+ローカル Supabase を使う場合は Docker Desktop を起動してから実行します。
+
+```bash
+pnpm run db:start
+```
+
+起動後、接続情報を確認します。
 
 ```bash
 pnpm exec supabase status
 ```
 
-ローカル Supabase を止める場合は、以下を実行します。
+表示される値を `.env.local` に設定します。
+
+| `supabase status` の表示 | `.env.local` に入れる変数              |
+| ------------------------ | -------------------------------------- |
+| API URL                  | `NEXT_PUBLIC_SUPABASE_URL`             |
+| anon key                 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` |
+| service_role key         | `SUPABASE_SERVICE_ROLE_KEY`            |
+
+DB をリセットしたい場合:
 
 ```bash
-pnpm exec supabase stop
+pnpm run db:reset
 ```
 
-複数案件を扱う場合は、基本的に作業するプロジェクトだけを起動し、使わないプロジェクトは停止してください。
+停止する場合:
+
+```bash
+pnpm run db:stop
+```
 
 ---
 
-## 13. 環境変数を設定する
+## 9. Stripe Test workspace を準備する
 
-Supabase 接続情報などは `.env.local` に設定します。
+受講生ごとに、自分の Stripe の **Test mode** で作業してください。
 
-`.env.local` は Git に含めてはいけません。
+### 9-1. API Key を確認する
+
+Stripe Dashboard で **Developers → API keys** を開き、Test mode の secret key を確認します。
+
+| Stripe の値              | `.env.local` に入れる変数 |
+| ------------------------ | ------------------------- |
+| Secret key `sk_test_...` | `STRIPE_SECRET_KEY`       |
+
+> [!warning]
+> `sk_live_...` は本番用です。学習中は必ず `sk_test_...` を使ってください。
+
+### 9-2. Product / Price を作成する
+
+Stripe Dashboard で Test mode の Product と Price を作成します。
+
+最低 1 つの subscription price が必要です。
+
+| Stripe の値           | env                           |
+| --------------------- | ----------------------------- |
+| Price ID `price_...`  | `STRIPE_ALLOWED_PRICE_IDS`    |
+| 月額プランの Price ID | `STRIPE_PRO_MONTHLY_PRICE_ID` |
+| 年額プランの Price ID | `STRIPE_PRO_YEARLY_PRICE_ID`  |
+
+`STRIPE_PRO_MONTHLY_PRICE_ID` / `STRIPE_PRO_YEARLY_PRICE_ID` は任意ですが、月額・年額の両方を作る場合は設定してください。
+
+例:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
+STRIPE_ALLOWED_PRICE_IDS=price_monthly_xxxxx,price_yearly_xxxxx
+STRIPE_PRO_MONTHLY_PRICE_ID=price_monthly_xxxxx
+STRIPE_PRO_YEARLY_PRICE_ID=price_yearly_xxxxx
 ```
 
-サーバー側限定で強い権限が必要な場合のみ、以下のような値を使います。
+### 9-3. Webhook を作成する
+
+リモート Supabase Edge Functions を使う場合の Webhook endpoint:
+
+```text
+https://<あなたのproject-ref>.supabase.co/functions/v1/stripe-billing-webhook
+```
+
+ローカル Supabase Edge Functions に Stripe CLI で転送する場合:
+
+```bash
+stripe listen --forward-to http://127.0.0.1:54321/functions/v1/stripe-billing-webhook
+```
+
+Stripe CLI に表示される `whsec_...` を `STRIPE_WEBHOOK_SECRET` に設定します。
+
+Webhook で最低限購読するイベント:
+
+- `checkout.session.completed`
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.payment_succeeded`
+
+---
+
+## 10. `.env.local` を作成する
+
+Next.js のローカル開発では、ルート直下の `.env.local` を使います。
+
+```bash
+cp .env.example .env.local
+```
+
+`.env.local` を開き、自分の値に差し替えてください。
 
 ```env
-SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
-LLM_GATEWAY_API_KEY=YOUR_LLM_GATEWAY_API_KEY
-STRIPE_SECRET_KEY=sk_test_xxxxx
-STRIPE_WEBHOOK_SECRET=whsec_xxxxx
-STRIPE_ALLOWED_PRICE_IDS=price_xxxxx
+# App
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://<あなたのProject URL または ローカルAPI URL>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<あなたのpublishable key / anon key>
+SUPABASE_SERVICE_ROLE_KEY=<あなたのservice_role key>
+
+# LLM Gateway
+LLM_GATEWAY_API_KEY=<LLM GatewayのAPIキー>
+
+# Stripe
+STRIPE_SECRET_KEY=<あなたのStripe test secret key>
+STRIPE_WEBHOOK_SECRET=<あなたのStripe Webhook署名シークレット>
+STRIPE_ALLOWED_PRICE_IDS=<許可するStripe Price ID。複数の場合はカンマ区切り>
+STRIPE_PRO_MONTHLY_PRICE_ID=<任意: 月額プランのPrice ID>
+STRIPE_PRO_YEARLY_PRICE_ID=<任意: 年額プランのPrice ID>
+
+# Redirect allow-list
 ALLOWED_REDIRECT_ORIGINS=http://localhost:3000
 ```
 
-### 注意
-
-- `NEXT_PUBLIC_` が付いた値はブラウザに公開される前提で扱う
-- `SUPABASE_SERVICE_ROLE_KEY` は Client Component で使わない
-- `STRIPE_SECRET_KEY` と `STRIPE_WEBHOOK_SECRET` はサーバー側・Supabase Edge Functions 側だけで使う
-- `STRIPE_ALLOWED_PRICE_IDS` には Checkout 作成を許可する Price ID だけを設定する
-- `ALLOWED_REDIRECT_ORIGINS` には Checkout / Customer Portal から戻してよい Origin だけを設定する
-- secret key をコードに直接書かない
-- `.env.local` をコミットしない
-- `.env.example` にはダミー値だけを書く
+> [!warning]
+> `.env.local` は Git にコミットしないでください。
 
 ---
 
-## 14. .gitignore を確認する
+## 11. Supabase Edge Functions の secret を設定する
 
-最低限、以下が `.gitignore` に含まれていることを確認します。
+このアプリでは、AI チャットや Stripe Checkout / Webhook の処理に Supabase Edge Functions を使います。
 
-```gitignore
-.env
-.env.local
-.env.development.local
-.env.production.local
-node_modules/
-.next/
-.DS_Store
-coverage/
-```
+Next.js の `.env.local` とは別に、Edge Functions 側にも secret が必要です。
 
-誤って秘密情報をコミットしないよう、コミット前に必ず差分を確認してください。
+### 11-1. ローカル Edge Functions 用
 
 ```bash
-git status
-git diff
+cp supabase/functions/.env.example supabase/functions/.env
+```
+
+`supabase/functions/.env` に自分の値を設定します。
+
+```env
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+LLM_GATEWAY_API_KEY=<LLM GatewayのAPIキー>
+STRIPE_SECRET_KEY=<あなたのStripe test secret key>
+STRIPE_WEBHOOK_SECRET=<あなたのStripe Webhook署名シークレット>
+STRIPE_ALLOWED_PRICE_IDS=<許可するStripe Price ID>
+STRIPE_PRO_MONTHLY_PRICE_ID=<任意: 月額プランのPrice ID>
+STRIPE_PRO_YEARLY_PRICE_ID=<任意: 年額プランのPrice ID>
+ALLOWED_REDIRECT_ORIGINS=http://localhost:3000
+```
+
+### 11-2. リモート Edge Functions 用
+
+リモート Supabase に secret を登録します。
+
+```bash
+pnpm exec supabase secrets set --env-file supabase/functions/.env
+```
+
+> [!note]
+> Stripe Webhook の `whsec_...` は endpoint ごとに異なります。Stripe CLI で取得したローカル用の `whsec_...` と、Stripe Dashboard で作成したリモート endpoint 用の `whsec_...` を混ぜないでください。
+
+登録済み secret の確認:
+
+```bash
+pnpm exec supabase secrets list
+```
+
+### 11-3. Edge Functions をデプロイする
+
+リモート Supabase で動かす場合は、Edge Functions をデプロイします。
+
+```bash
+pnpm exec supabase functions deploy chat-completion
+pnpm exec supabase functions deploy create-billing-checkout-session
+pnpm exec supabase functions deploy create-billing-portal-session
+pnpm exec supabase functions deploy stripe-billing-webhook
 ```
 
 ---
 
-## 15. 開発サーバーを起動する
+## 12. Cloudflare Workers preview 用 `.dev.vars` を作成する
 
-依存関係と環境変数の設定が終わったら、開発サーバーを起動します。
+Cloudflare Workers の preview / deploy を確認する場合は `.dev.vars` を作成します。
 
 ```bash
-pnpm dev
+cp .dev.vars.example .dev.vars
 ```
 
-通常は以下にアクセスします。
+`.dev.vars` にも、自分の Supabase / Stripe / LLM Gateway の値を設定してください。
+
+> [!warning]
+> `.dev.vars` も Git にコミットしないでください。
+
+Cloudflare にデプロイする場合は、Cloudflare Dashboard 側の Workers Variables / Secrets にも同じ値を設定します。
+
+---
+
+## 13. 開発サーバーを起動する
+
+```bash
+pnpm run dev
+```
+
+ブラウザで開きます。
 
 ```text
 http://localhost:3000
 ```
 
-ブラウザで画面が表示されることを確認してください。
+初回確認:
+
+1. トップページが表示される
+2. サインアップできる
+3. ログインできる
+4. チャット画面に遷移できる
+5. Billing 画面で Stripe plan が表示される
+6. Checkout に遷移できる
 
 ---
 
-## 16. 初回の動作確認
+## 14. よく使うコマンド
 
-開発を始める前に、最低限以下を確認します。
-
-```bash
-pnpm lint
-pnpm build
-```
-
-`type-check` script がある場合は、以下も実行します。
-
-```bash
-pnpm type-check
-```
-
-`package.json` に `type-check` がない場合は、担当者に確認したうえで追加を検討します。
-
-```json
-{
-	"scripts": {
-		"type-check": "tsc --noEmit"
-	}
-}
-```
+| 用途                   | コマンド                |
+| ---------------------- | ----------------------- |
+| 開発サーバー起動       | `pnpm run dev`          |
+| 本番ビルド             | `pnpm run build`        |
+| Lint                   | `pnpm run lint`         |
+| Lint 自動修正          | `pnpm run lint:fix`     |
+| Format                 | `pnpm run format`       |
+| Format 確認            | `pnpm run format:check` |
+| テスト                 | `pnpm run test`         |
+| ローカル Supabase 起動 | `pnpm run db:start`     |
+| ローカル Supabase 停止 | `pnpm run db:stop`      |
+| ローカル DB リセット   | `pnpm run db:reset`     |
+| リモート DB 反映       | `pnpm run db:push`      |
+| Supabase 型生成        | `pnpm run gen:types`    |
+| Cloudflare preview     | `pnpm run preview`      |
+| Cloudflare deploy      | `pnpm run deploy`       |
 
 ---
 
-## 17. 作業ブランチを作成する
+## 15. 環境変数一覧
 
-作業を始める前に、必ず `main` を最新化します。
+### Next.js / Cloudflare Workers
 
-```bash
-git switch main
-git pull origin main
-```
+| 変数名                                 | 必須 | 公開可否 | 説明                                             |
+| -------------------------------------- | ---- | -------- | ------------------------------------------------ |
+| `NEXT_PUBLIC_SITE_URL`                 | -    | 公開可   | アプリの URL。ローカルは `http://localhost:3000` |
+| `NEXT_PUBLIC_SUPABASE_URL`             | ✅   | 公開可   | Supabase Project URL またはローカル API URL      |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | ✅   | 公開可   | Supabase publishable key / anon key              |
+| `SUPABASE_SERVICE_ROLE_KEY`            | ✅   | 秘密     | サーバー側専用の service_role key                |
+| `LLM_GATEWAY_API_KEY`                  | ✅   | 秘密     | LLM Gateway API Key                              |
+| `STRIPE_SECRET_KEY`                    | ✅   | 秘密     | Stripe secret key。学習中は `sk_test_...` を使う |
+| `STRIPE_WEBHOOK_SECRET`                | ✅   | 秘密     | Stripe Webhook signing secret `whsec_...`        |
+| `STRIPE_ALLOWED_PRICE_IDS`             | ✅   | 秘密     | Checkout を許可する Price ID のカンマ区切り      |
+| `STRIPE_PRO_MONTHLY_PRICE_ID`          | -    | 秘密     | 月額プランとして扱う Price ID                    |
+| `STRIPE_PRO_YEARLY_PRICE_ID`           | -    | 秘密     | 年額プランとして扱う Price ID                    |
+| `ALLOWED_REDIRECT_ORIGINS`             | -    | 秘密     | Checkout / Portal から戻してよい Origin          |
+| `NEXTJS_ENV`                           | -    | 秘密     | Cloudflare preview 用。通常は `development`      |
 
-その後、作業内容に合ったブランチを作成します。
+### Supabase Edge Functions
 
-```bash
-git switch -c feature/add-auth-pages
-```
+| 変数名                        | 必須 | 説明                                 |
+| ----------------------------- | ---- | ------------------------------------ |
+| `NEXT_PUBLIC_SITE_URL`        | -    | Checkout / Portal の戻り先生成に使う |
+| `LLM_GATEWAY_API_KEY`         | ✅   | AI チャットで使う                    |
+| `STRIPE_SECRET_KEY`           | ✅   | Checkout / Portal Session 作成で使う |
+| `STRIPE_WEBHOOK_SECRET`       | ✅   | Stripe Webhook 署名検証で使う        |
+| `STRIPE_ALLOWED_PRICE_IDS`    | ✅   | Checkout で許可する Price ID         |
+| `STRIPE_PRO_MONTHLY_PRICE_ID` | -    | 月額プラン判定に使う                 |
+| `STRIPE_PRO_YEARLY_PRICE_ID`  | -    | 年額プラン判定に使う                 |
+| `ALLOWED_REDIRECT_ORIGINS`    | -    | リダイレクト先 Origin の許可リスト   |
 
-### ブランチ名の例
+Supabase Edge Functions では、`SUPABASE_URL` や service role key は Supabase 側が標準 secret として提供します。
+
+---
+
+## 16. Git にコミットしてはいけないファイル
+
+次のファイルには本物の secret が入るため、コミットしてはいけません。
 
 ```text
-feature/add-auth-pages
-fix/session-refresh-bug
-refactor/auth-server-actions
-chore/update-eslint-config
-docs/update-setup-guide
-test/add-auth-flow-test
+.env.local
+.dev.vars
+supabase/functions/.env
 ```
 
----
-
-## 18. コミット前の確認
-
-コミット前に、必ず現在の状態と差分を確認します。
+コミット前に必ず確認します。
 
 ```bash
 git status
 git diff
 ```
 
-ステージング後は、コミット予定の差分も確認します。
+サンプルファイルはコミット対象です。
 
-```bash
-git diff --cached
+```text
+.env.example
+.dev.vars.example
+supabase/functions/.env.example
 ```
 
-`git add .` を使う場合は、不要ファイルや秘密情報が含まれていないことを確認してください。
-
-### pre-commitフックの設定（推奨）
-
-コード品質を担保するため、huskyとlint-stagedによるpre-commitフックを導入することを推奨します。
-
-#### 設定手順
-
-```bash
-# huskyとlint-stagedをインストール
-pnpm add -D husky lint-staged
-
-# huskyを初期化
-pnpm exec husky init
-
-# pre-commitフックを設定
-echo "pnpm exec lint-staged" > .husky/pre-commit
-chmod +x .husky/pre-commit
-```
-
-#### package.jsonにlint-stagedの設定を追加
-
-```json
-{
-	"lint-staged": {
-		"*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
-		"*.{json,md}": ["prettier --write"]
-	}
-}
-```
-
-設定後、コミット時に自動でlintとフォーマットが実行されます。エラーがある場合はコミットがキャンセルされます。
+サンプルファイルには空文字またはダミー値だけを書いてください。
 
 ---
 
-## 19. PR 作成前チェック
+## 17. よくあるトラブル
 
-Pull Request を作成する前に、最低限以下を実行します。
+### `Missing required environment variable` が出る
 
-```bash
-git status
-git diff
-pnpm install
-pnpm lint
-pnpm build
-```
+`.env.local` に必要な値が入っていない可能性があります。
 
-`type-check` がある場合は、以下も実行します。
-
-```bash
-pnpm type-check
-```
-
-Supabase の DB スキーマを変更した場合は、以下も確認してください。
-
-- migration を作成したか
-- 型生成を更新したか
-- RLS / policy の影響を確認したか
-- PR 本文に DB 変更内容を書いたか
-
----
-
-## 20. よくあるトラブルと確認ポイント
-
-### GitHub に push できない
-
-以下を確認します。
-
-```bash
-gh auth status
-git remote -v
-```
-
-remote URL が SSH になっている場合は、HTTPS に直してください。
-
-### pnpm install が失敗する
-
-以下を確認します。
-
-```bash
-node -v
-pnpm -v
-```
-
-Node.js のバージョンが古い場合は、担当者に確認してから更新してください。
-
-### GitHub Actions で pnpm/action-setup が失敗する
-
-以下のようなエラーが出る場合があります。
+確認するファイル:
 
 ```text
-Error: No pnpm version is specified.
+.env.local
 ```
 
-この場合は、`package.json` に `packageManager` が設定されているか確認してください。
-
-```json
-{
-	"packageManager": "pnpm@11.1.1"
-}
-```
-
-また、以下のようなエラーが出る場合は、CI の Node.js バージョンが pnpm の要求バージョンを満たしていません。
+Cloudflare preview の場合:
 
 ```text
-This version of pnpm requires at least Node.js v22.13
-No such built-in module: node:sqlite
+.dev.vars
 ```
 
-`.github/workflows/ci.yml` の `actions/setup-node` で Node.js 22 系を使うようにしてください。
+Supabase Edge Functions の場合:
 
-```yaml
-- uses: actions/setup-node@v4
-  with:
-    node-version: 22
-    cache: "pnpm"
+```text
+supabase/functions/.env
 ```
 
-### pnpm dev で Supabase 接続エラーが出る
-
-以下を確認します。
-
-- `.env.local` が存在するか
-- URL や key にコピー漏れがないか
-- ローカル Supabase を使う場合は起動しているか
-- クラウド Supabase とローカル Supabase の接続先が混ざっていないか
+リモート Edge Functions の場合は、次も確認します。
 
 ```bash
-pnpm exec supabase status
+pnpm exec supabase secrets list
 ```
 
-### Docker 関連で Supabase が起動しない
+### Supabase に接続できない
 
-以下を確認します。
+以下を確認してください。
+
+- `NEXT_PUBLIC_SUPABASE_URL` が自分の Project URL またはローカル API URL になっているか
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` が同じ Supabase プロジェクトの key か
+- `SUPABASE_SERVICE_ROLE_KEY` が同じ Supabase プロジェクトの key か
+- リモートの場合、`pnpm run db:push` を実行したか
+- ローカルの場合、`pnpm run db:start` が起動しているか
+
+### Stripe Checkout で `price_id_not_allowed` が出る
+
+`STRIPE_ALLOWED_PRICE_IDS` に、Checkout に渡している `price_...` が含まれていません。
+
+確認すること:
+
+- `STRIPE_ALLOWED_PRICE_IDS` に自分の Stripe Test mode の Price ID を入れたか
+- 複数ある場合はカンマ区切りにしたか
+- `STRIPE_PRO_MONTHLY_PRICE_ID` / `STRIPE_PRO_YEARLY_PRICE_ID` に入れた ID も `STRIPE_ALLOWED_PRICE_IDS` に含めたか
+
+### Stripe Webhook の署名検証に失敗する
+
+`STRIPE_WEBHOOK_SECRET` が間違っている可能性があります。
+
+- Stripe Dashboard の Webhook endpoint ごとの `whsec_...` を使っているか
+- Stripe CLI を使う場合、CLI が表示した `whsec_...` を使っているか
+- リモート用とローカル用の `whsec_...` を混ぜていないか
+
+### Supabase Edge Functions が secret を読めない
+
+ローカルの場合:
+
+```bash
+cp supabase/functions/.env.example supabase/functions/.env
+```
+
+リモートの場合:
+
+```bash
+pnpm exec supabase secrets set --env-file supabase/functions/.env
+```
+
+設定後、必要に応じて Edge Functions を再デプロイしてください。
+
+### Docker が原因でローカル Supabase が起動しない
+
+確認すること:
 
 - Docker Desktop が起動しているか
-- 他プロジェクトの Supabase が起動したままになっていないか
-- 必要なポートが使用中でないか
-
-使っていないプロジェクトでは、以下を実行して停止します。
+- 他のプロジェクトの Supabase が同じポートを使っていないか
+- 一度停止してから起動し直す
 
 ```bash
-pnpm exec supabase stop
+pnpm run db:stop
+pnpm run db:start
 ```
 
 ---
 
-## 21. 環境構築完了チェックリスト
+## 18. セットアップ完了チェックリスト
 
-環境構築が完了したら、以下を確認してください。
+- [ ] Node.js / pnpm / Git / Docker が使える
+- [ ] `pnpm install` が完了した
+- [ ] 自分の Supabase リモートプロジェクトを作成した、またはローカル Supabase を起動した
+- [ ] リモート Supabase を使う場合、`pnpm exec supabase link --project-ref <project-ref>` が完了した
+- [ ] リモート Supabase を使う場合、`pnpm run db:push` が完了した
+- [ ] `.env.local` を作成した
+- [ ] `supabase/functions/.env` を作成した
+- [ ] リモート Edge Functions を使う場合、remote secrets を設定した
+- [ ] リモート Edge Functions を使う場合、Edge Functions をデプロイした
+- [ ] 自分の Stripe Test mode で Product / Price を作成した
+- [ ] 自分の Stripe Webhook endpoint を作成した
+- [ ] `STRIPE_ALLOWED_PRICE_IDS` に自分の Price ID を設定した
+- [ ] `pnpm run dev` でアプリが起動した
+- [ ] サインアップ / ログインができた
+- [ ] Billing 画面から Checkout に遷移できた
+- [ ] `.env.local`、`.dev.vars`、`supabase/functions/.env` が Git 差分に出ていない
 
-- Git / Node.js / pnpm / GitHub CLI / Docker のバージョンを確認できた
-- Node.js が `package.json` の `engines.node` を満たしている
-- pnpm が `package.json` の `packageManager` と一致している
-- GitHub CLI でログインできた
-- HTTPS URL で repository を clone できた
-- `pnpm install` が成功した
-- `.npmrc` を作成し、`minimum-release-age=1440` を設定した
-- `.env.local` を設定した
-- `.env.local` が Git 管理対象外になっている
-- `pnpm dev` で画面を表示できた
-- `pnpm lint` が成功した
-- `pnpm build` が成功した
-- 必要に応じて `pnpm type-check` が成功した
-- Supabase CLI を `pnpm exec supabase --help` で確認できた
-- ローカル Supabase を使う場合、`pnpm exec supabase start` と `pnpm exec supabase status` を確認できた
-- `main` を最新化して作業ブランチを作成できた
+---
 
-このチェックリストを満たした状態を、開発開始可能な最低ラインとします。
+## 19. 次に読むドキュメント
+
+| 目的                                 | ドキュメント                                            |
+| ------------------------------------ | ------------------------------------------------------- |
+| Stripe の Product / Webhook 設定詳細 | `docs/stripe/stripe-dashboard-product-setup.md`         |
+| Supabase の環境変数詳細              | `docs/supabase/environment-variables.md`                |
+| 開発フロー                           | `docs/development/feature-development-guide.md`         |
+| フォルダ構成                         | `docs/coding-guide/11_nextjs-folder-structure-guide.md` |
+| Cloudflare デプロイ                  | `docs/deployment/nextjs-cloudflare-workers-deploy.md`   |
