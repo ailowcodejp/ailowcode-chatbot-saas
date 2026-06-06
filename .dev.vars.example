@@ -1,5 +1,23 @@
-# Load .env.development* files when running `wrangler dev`
-NEXTJS_ENV=development
+# Copy this file to .dev.vars when running Cloudflare Workers preview locally.
+# Never commit .dev.vars or real secrets.
+
+NEXTJS_ENV="development"
+
+# App URL
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+
+# Supabase - use your own remote project values for Cloudflare preview/deploy checks.
+NEXT_PUBLIC_SUPABASE_URL=""
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=""
+SUPABASE_SERVICE_ROLE_KEY=""
 
 # LLM Gateway
 LLM_GATEWAY_API_KEY=""
+
+# Stripe
+STRIPE_SECRET_KEY=""
+STRIPE_WEBHOOK_SECRET=""
+STRIPE_ALLOWED_PRICE_IDS=""
+STRIPE_PRO_MONTHLY_PRICE_ID=""
+STRIPE_PRO_YEARLY_PRICE_ID=""
+ALLOWED_REDIRECT_ORIGINS="http://localhost:3000"
